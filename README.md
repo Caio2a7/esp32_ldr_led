@@ -1,1 +1,10 @@
 # iot_esp32_ldr_led
+adc=120, duty=7,blink=126ms
+modo manual o potenciômetro controla as coisas
+
+botão ativa modo automático
+modo automático o ldr controla as coisas
+duty cicle varia de 0 a 225
+
+---------------
+de acordo com wokwi diagram json que tem todos os equipamentos que quero: { "version": 1, "author": "Uri Shaked", "editor": "wokwi", "parts": [ { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 4.84, "attrs": {} }, { "type": "wokwi-resistor", "id": "r1", "top": 138.35, "left": -76.8, "attrs": { "value": "1000" } }, { "type": "wokwi-resistor", "id": "r2", "top": 119.15, "left": -115.2, "attrs": { "value": "1000" } }, { "type": "wokwi-led", "id": "led1", "top": 73.2, "left": -169, "attrs": { "color": "blue" } }, { "type": "wokwi-led", "id": "led2", "top": 82.8, "left": -207.4, "attrs": { "color": "green" } }, { "type": "wokwi-potentiometer", "id": "pot1", "top": -126.1, "left": -240.2, "attrs": {} }, { "type": "wokwi-potentiometer", "id": "pot2", "top": -126.1, "left": -125, "attrs": {} }, { "type": "wokwi-pushbutton-6mm", "id": "btn1", "top": 74.6, "left": -288, "attrs": { "color": "green", "xray": "1" } } ], "connections": [ [ "esp:TX", "$serialMonitor:RX", "", [] ], [ "esp:RX", "$serialMonitor:TX", "", [] ], [ "r1:1", "led1:A", "green", [ "v0.07", "h-10" ] ], [ "r2:1", "led2:A", "green", [ "h-38.4", "v-19.2" ] ], [ "esp:GND.1", "led2:C", "black", [ "h0" ] ], [ "esp:GND.1", "led1:C", "black", [ "h0" ] ], [ "esp:26", "r1:2", "green", [ "h0" ] ], [ "r2:2", "esp:27", "green", [ "v0" ] ], [ "pot2:VCC", "esp:3V3", "red", [ "v0" ] ], [ "pot1:VCC", "esp:3V3", "red", [ "v86.4", "h162.4" ] ], [ "pot2:SIG", "esp:VP", "green", [ "v0" ] ], [ "pot1:SIG", "esp:VN", "green", [ "v0" ] ], [ "btn1:1.r", "esp:35", "green", [ "v0" ] ], [ "btn1:2.l", "esp:GND.1", "black", [ "h-19.2", "v58", "h172.8", "v0" ] ], [ "pot1:GND", "esp:GND.1", "black", [ "v0" ] ], [ "pot2:GND", "esp:GND.1", "black", [ "v0" ] ] ], "dependencies": {} } ---- Me forneça o código que irá satisfazer tal tarefa: ""
