@@ -1,93 +1,128 @@
-#include <Arduino.h>
+/* 
+  |---------------------------------------|
+  | Alunos:                               |
+  |  - Caio Daniel Fonseca de Araújo      |
+  |  - João Pedro                         |
+  |---------------------------------------|
+*/
 
-#define PIN_POT 34
-#define PIN_LDR 33
-#define PIN_LED_LIGADO 21
-#define PIN_LED_PISCA 19
+// CONSTANTES da numeração de cada pino
+#define PIN_POT 33
+#define PIN_POT_LDR 34
+#define PIN_BTN 26
+#define PIN_LED_1 18
+#define PIN_LED_2 17
 
-#define PIN_CHANGE_BTN 25
+// CONSTANTES de estado
+#define MANUAL 0
+#define AUTOMATIC 1
 
-// Configurações para o PWM (ledc) no ESP32
-const int ledChannel = 0;
-const int freq = 5000;
-const int resolution = 8;
+//CONSTANTES ADC
+#define ADC_INPUT_MIN 0
+#define ADC_INPUT_MAX 1240
 
-unsigned long tempoAnterior = 0;
-int tempoControle = 500;
-bool estaAceso = false;
-bool ultimoEstadoBotao = true;
+//CONSTANTES LED
+#define LED_BRIGHTNESS_MIN 0
+#define LED_BRIGHTNESS_MAX 255
+#define BLINK_DELAY_MIN 100  // 100ms
+#define BLINK_DELAY_MAX 1000 //1000ms
+
+// CONSTANTES PWM
+#define PWM_LED_1_CHANNEL 0
+#define PWM_FREQ 5000 //5kHz
+#define PWM_RESOLUTION 8 // 2^8 (0 - 255) faixa de brilho que leds operam 
+
+// VARS BOTÃO
+int lastBtnState = LOW;
+unsigned long lastDebounceTime = 0;
+unsigned long debounceDelay = 50;
+
+// VARS ESTADO do CIRCUITO
+unsigned int modeState = MANUAL;
+int led2State = LOW;
+unsigned long lastBlinkTime = 0;
 
 void setup() {
   Serial.begin(115200);
+  
+  pinMode(PIN_LED_1, OUTPUT);
+  pinMode(PIN_LED_2, OUTPUT);
 
-  // Configura o PWM para o PIN_LED_LIGADO
-  pinMode(PIN_LED_LIGADO, OUTPUT);
+  pinMode(PIN_BTN, INPUT_PULLDOWN);
 
-  pinMode(PIN_LED_PISCA, OUTPUT);
-
-  pinMode(PIN_CHANGE_BTN, INPUT_PULLUP);
+  ledcAttach(PWM_LED_1_CHANNEL, PWM_FREQ, PWM_RESOLUTION);
 }
 
-void manualMode() {
-  int potValue = analogRead(PIN_POT);
+void manualMode(){
+  // POT - ADC
+  int adc = analogRead(PIN_POT);
 
-  // controla o brilho do LED ligado
-  int brilho = map(potValue, 0, 4095, 0, 255); // Mapeamento de brilho
-  analogWrite(PIN_LED_LIGADO, brilho); // Usando a função correta para o ESP32
+  // LED1
+  int pwm = map(adc, ADC_INPUT_MIN, ADC_INPUT_MAX, LED_BRIGHTNESS_MIN, LED_BRIGHTNESS_MAX);
+  pwm = constrain(pwm, LED_BRIGHTNESS_MIN, LED_BRIGHTNESS_MAX);
+  ledcWrite(PWM_LED_1_CHANNEL, pwm);
 
-  // controla o tempo de piscada do LED
-  tempoControle = map(potValue, 0, 4095, 100, 1000); // Mapeamento de tempo de blink entre 100ms e 1000ms
+  // LED 2
+  int adcConstrained = constrain(adc, ADC_INPUT_MIN, ADC_INPUT_MAX);
+  int blinkDelay = map(adcConstrained, ADC_INPUT_MIN, ADC_INPUT_MAX, BLINK_DELAY_MIN, BLINK_DELAY_MAX);
+  blinkDelay = constrain(blinkDelay, BLINK_DELAY_MIN, BLINK_DELAY_MAX);
+  blinkDelay = constrain(blinkDelay, BLINK_DELAY_MIN, BLINK_DELAY_MAX);
 
-  unsigned long tempoAtual = millis();
-
-  if (tempoAtual - tempoAnterior >= tempoControle) {
-    tempoAnterior = tempoAtual;
-    estaAceso = !estaAceso; // inverte o estado
-
-    digitalWrite(PIN_LED_PISCA, estaAceso); // Não precisa do ternário, o booleano já funciona
+  if(millis() - lastBlinkTime >= blinkDelay){
+    lastBlinkTime = millis();
+    led2State = !led2State;
+    digitalWrite(PIN_LED_2, led2State);
   }
-
-  // Imprimindo o log da forma correta e recomendada para ESP32
-  Serial.printf("Manual Mode | Pot: %4d | Brilho: %3d | Tempo Blink: %4d ms\n", potValue, brilho, tempoControle);
-
+  Serial.printf("\nADC: %d -- DUTY: %d -- BLINK: %d", adc, pwm, blinkDelay);
 }
 
-void automaticMode() {
-  int potValue = analogRead(PIN_LDR);
+void automaticMode(){
+  // LDR - ADC
+  int adc = analogRead(PIN_POT_LDR); 
 
-  // controla o brilho do LED ligado
-  int brilho = map(potValue, 0, 4095, 0, 255); // Mapeamento de brilho
-  analogWrite(PIN_LED_LIGADO, brilho); // Usando a função correta para o ESP32
+  // LED 1
+  int pwm = map(adc, ADC_INPUT_MIN, ADC_INPUT_MAX, LED_BRIGHTNESS_MIN, LED_BRIGHTNESS_MAX);
+  pwm = constrain(pwm, LED_BRIGHTNESS_MIN, LED_BRIGHTNESS_MAX);
+  ledcWrite(PWM_LED_1_CHANNEL, pwm);
 
-  // controla o tempo de piscada do LED
-  tempoControle = map(potValue, 0, 4095, 100, 1000); // Mapeamento de tempo de blink entre 100ms e 1000ms
+  // LED 2
+  int adcConstrained = constrain(adc, ADC_INPUT_MIN, ADC_INPUT_MAX);
+  int blinkDelay = map(adcConstrained, ADC_INPUT_MIN, ADC_INPUT_MAX, BLINK_DELAY_MIN, BLINK_DELAY_MAX);
+  blinkDelay = constrain(blinkDelay, BLINK_DELAY_MIN, BLINK_DELAY_MAX);
+  blinkDelay = constrain(blinkDelay, BLINK_DELAY_MIN, BLINK_DELAY_MAX);
 
-  unsigned long tempoAtual = millis();
-
-  if (tempoAtual - tempoAnterior >= tempoControle) {
-    tempoAnterior = tempoAtual;
-    estaAceso = !estaAceso; // inverte o estado
-
-    digitalWrite(PIN_LED_PISCA, estaAceso); // Não precisa do ternário, o booleano já funciona
+  if(millis() - lastBlinkTime >= blinkDelay){
+    lastBlinkTime = millis();
+    led2State = !led2State;
+    digitalWrite(PIN_LED_2, led2State);
   }
+  Serial.printf("\nADC: %d -- DUTY: %d -- BLINK: %d", adc, pwm, blinkDelay);
+}
 
-  // Imprimindo o log da forma correta e recomendada para ESP32
-  Serial.printf("Automatic Mode | Pot: %4d | Brilho: %3d | Tempo Blink: %4d ms\n", potValue, brilho, tempoControle);
-
+void changeMode(){
+  modeState = !modeState;
+    Serial.println("\nINFO: Estado do circuito alterado");
 }
 
 void loop() {
-  bool mode = analogRead(PIN_CHANGE_BTN);
+  int btnState = digitalRead(PIN_BTN);
 
-  if (mode == LOW) {
-    ultimoEstadoBotao = !ultimoEstadoBotao;
-  } 
-
-  if (ultimoEstadoBotao) {
-    manualMode();
-  } else {
-    automaticMode();
+  if (btnState != lastBtnState) {
+    lastDebounceTime = millis();
   }
 
-  delay(100);
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+    if (btnState == HIGH && lastBtnState == LOW) { 
+      changeMode();
+    }
+  }
+  lastBtnState = btnState;
+
+  if(modeState == MANUAL){
+    manualMode();
+  } else if(modeState == AUTOMATIC){
+    automaticMode();
+  }else{
+    Serial.println("\nERRO: problemas na configuração do modo do circuito");
+  }
 }
