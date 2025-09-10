@@ -1,21 +1,24 @@
 # Trabalho Plataformas de Hardware para IOT
 Problema:
-○ Desenvolva uma aplicação com uso de microcontroladores
+Desenvolva uma aplicação com uso de microcontroladores
+
 (Arduino ou esp32).
-○ Sua aplicação deve ter:
- Entradas:
+Sua aplicação deve ter:
+Entradas:
 • 1 potenciômetro.
 • 1 LDR (Light Dependent Resistor) ou resistor dependente de luz.
 • 1 Botão como entradas.
- Saídas:
-• 2 LEDs.
-○ O botão controla o modo do MCU:
- Modo manual: O MCU deve iniciar nesse modo, onde ele deverá ler,
+Saídas:
+- 2 LEDs.
+- O botão controla o modo do MCU:
+
+Modo manual: O MCU deve iniciar nesse modo, onde ele deverá ler,
 via ADC, o valor do potenciômetro.
- Modo automático: O MCU deverá ler, via outro ADC, o valor do LDR.
+
+Modo automático: O MCU deverá ler, via outro ADC, o valor do LDR.
 ○ O potenciômetro deverá variar de 0 a 1 V, assim como o LDR.
-Atividade prática 1
-• Problema:
+
+Problema:
 ○ Os valores lidos servirão para acender os LEDs, variando o
 funcionamento.
 ○ Funcionamento dos LEDs:
