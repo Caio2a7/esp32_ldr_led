@@ -9,7 +9,7 @@
 // CONSTANTES da numeração de cada pino
 #define PIN_POT 33
 #define PIN_POT_LDR 34
-#define PIN_BTN 14
+#define PIN_BTN 25
 #define PIN_LED_1 18
 #define PIN_LED_2 17
 
@@ -33,7 +33,8 @@
 #define PWM_RESOLUTION 8 // 2^8 (0 - 255) faixa de brilho que leds operam 
 
 // VARS BOTÃO
-int lastBtnState = LOW;
+int lastBtnState = HIGH;
+int buttonState = HIGH; 
 unsigned long lastDebounceTime = 0;
 unsigned long debounceDelay = 50;
 
@@ -42,15 +43,17 @@ unsigned int modeState = MANUAL;
 int led2State = LOW;
 unsigned long lastBlinkTime = 0;
 
+bool ultimoEstadoBotao = true;
+
 void setup() {
   Serial.begin(115200);
   
   pinMode(PIN_LED_1, OUTPUT);
   pinMode(PIN_LED_2, OUTPUT);
 
-  pinMode(PIN_BTN, INPUT_PULLDOWN);
+  pinMode(PIN_BTN, INPUT_PULLUP);
 
-  ledcAttach(PIN_LED_1, PWM_FREQ, PWM_RESOLUTION);
+  // ledcAttach(PIN_LED_1, PWM_FREQ, PWM_RESOLUTION);
 }
 
 void manualMode(){
@@ -60,7 +63,8 @@ void manualMode(){
   // LED1
   int pwm = map(adc, ADC_INPUT_MIN, ADC_INPUT_MAX, LED_BRIGHTNESS_MIN, LED_BRIGHTNESS_MAX);
   pwm = constrain(pwm, LED_BRIGHTNESS_MIN, LED_BRIGHTNESS_MAX);
-  ledcWrite(PWM_LED_1_CHANNEL, pwm);
+  // ledcWrite(PIN_LED_1, pwm);
+  analogWrite(PIN_LED_1, pwm);
 
   // LED 2
   int adcConstrained = constrain(adc, ADC_INPUT_MIN, ADC_INPUT_MAX);
@@ -83,7 +87,8 @@ void automaticMode(){
   // LED 1
   int pwm = map(adc, ADC_INPUT_MIN, ADC_INPUT_MAX, LED_BRIGHTNESS_MIN, LED_BRIGHTNESS_MAX);
   pwm = constrain(pwm, LED_BRIGHTNESS_MIN, LED_BRIGHTNESS_MAX);
-  ledcWrite(PWM_LED_1_CHANNEL, pwm);
+  // ledcWrite(PIN_LED_1, pwm);
+  analogWrite(PIN_LED_1, pwm);
 
   // LED 2
   int adcConstrained = constrain(adc, ADC_INPUT_MIN, ADC_INPUT_MAX);
@@ -101,28 +106,44 @@ void automaticMode(){
 
 void changeMode(){
   modeState = !modeState;
-    Serial.println("\nINFO: Estado do circuito alterado");
+  Serial.println("\nINFO: Estado do circuito alterado");
 }
 
 void loop() {
-  int btnState = digitalRead(PIN_BTN);
+  bool mode = analogRead(PIN_BTN);
 
-  if (btnState != lastBtnState) {
-    lastDebounceTime = millis();
-  }
+  if (mode == LOW) {
+    ultimoEstadoBotao = !ultimoEstadoBotao;
+  } 
 
-  if ((millis() - lastDebounceTime) > debounceDelay) {
-    if (btnState == HIGH && lastBtnState == LOW) { 
-      changeMode();
-    }
-  }
-  lastBtnState = btnState;
-
-  if(modeState == MANUAL){
+  if (ultimoEstadoBotao) {
     manualMode();
-  } else if(modeState == AUTOMATIC){
+  } else {
     automaticMode();
-  }else{
-    Serial.println("\nERRO: problemas na configuração do modo do circuito");
   }
+
+  delay(100);
+  // int reading = analogRead(PIN_BTN);
+
+  // if (reading != lastBtnState) {
+  //   lastDebounceTime = millis();
+  // }
+
+  // if ((millis() - lastDebounceTime) > debounceDelay) {
+  //   if (reading != buttonState) {
+  //     buttonState = reading; 
+  //     if (buttonState == LOW) {
+  //       changeMode();
+  //     }
+  //   }
+  // }
+  // lastBtnState = reading;
+
+  // if (modeState == MANUAL) {
+  //   manualMode();
+  // } else if (modeState == AUTOMATIC) {
+  //   automaticMode();
+  // } else {
+  //   Serial.println("\nERRO: problemas na configuração do modo do circuito");
+  // }
 }
