@@ -5,11 +5,11 @@
   |  - João Pedro                         |
   |---------------------------------------|
 */
-
+#include "Arduino.h"
 // CONSTANTES da numeração de cada pino
 #define PIN_POT 33
 #define PIN_POT_LDR 34
-#define PIN_BTN 26
+#define PIN_BTN 14
 #define PIN_LED_1 18
 #define PIN_LED_2 17
 
@@ -50,7 +50,7 @@ void setup() {
 
   pinMode(PIN_BTN, INPUT_PULLDOWN);
 
-  ledcAttach(PWM_LED_1_CHANNEL, PWM_FREQ, PWM_RESOLUTION);
+  ledcAttach(PIN_LED_1, PWM_FREQ, PWM_RESOLUTION);
 }
 
 void manualMode(){
@@ -73,7 +73,7 @@ void manualMode(){
     led2State = !led2State;
     digitalWrite(PIN_LED_2, led2State);
   }
-  Serial.printf("\nADC: %d -- DUTY: %d -- BLINK: %d", adc, pwm, blinkDelay);
+  Serial.printf("\nADC: %d -- DUTY: %d -- BLINK: %dms", adc, pwm, blinkDelay);
 }
 
 void automaticMode(){
@@ -96,7 +96,7 @@ void automaticMode(){
     led2State = !led2State;
     digitalWrite(PIN_LED_2, led2State);
   }
-  Serial.printf("\nADC: %d -- DUTY: %d -- BLINK: %d", adc, pwm, blinkDelay);
+  Serial.printf("\nADC: %d -- DUTY: %d -- BLINK: %dms", adc, pwm, blinkDelay);
 }
 
 void changeMode(){
